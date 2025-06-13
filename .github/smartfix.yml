@@ -46,7 +46,7 @@ jobs:
         uses: Contrast-Security-OSS/contrast-ai-smartfix-action@v1
         with:
           max_open_prs: 5
-          base_branch: develop
+          base_branch: main
           build_command: './gradlew clean build -x test'
           max_qa_attempts: 6
           github_token: ${{ secrets.GITHUB_TOKEN }}
