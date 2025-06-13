@@ -69,30 +69,61 @@ public class CheckService extends ServiceSupport {
 	}
 
 	public void updateCheckImage(String checkNumber, InputStream is) {
+		File baseDir = new File(CHECK_IMAGE_LOCATION);
 		try {
-			String location = new URI(CHECK_IMAGE_LOCATION + "/" + checkNumber).normalize().toString();
-			try ( FileOutputStream fos = new FileOutputStream(location) ) {
+			File targetFile = new File(baseDir, checkNumber);
+			
+			// Validate that the target file is within the intended directory
+			String canonicalBasePath = baseDir.getCanonicalPath();
+			String canonicalTargetPath = targetFile.getCanonicalPath();
+			
+			if (!canonicalTargetPath.startsWith(canonicalBasePath + File.separator) &&
+				!canonicalTargetPath.equals(canonicalBasePath)) {
+				throw new IllegalArgumentException("Invalid check number");
+			}
+			
+			// Create parent directories if they don't exist
+			File parentDir = targetFile.getParentFile();
+			if (!parentDir.exists()) {
+				parentDir.mkdirs();
+			}
+			
+			try (FileOutputStream fos = new FileOutputStream(targetFile)) {
 				byte[] b = new byte[1024];
 				int read;
-				while ( ( read = is.read(b) ) != -1 ) {
+				while ((read = is.read(b)) != -1) {
 					fos.write(b, 0, read);
 				}
-			} catch ( IOException e ) {
+			} catch (IOException e) {
 				throw new IllegalArgumentException(e);
 			}
-		} catch ( URISyntaxException e ) {
+		} catch (IOException e) {
 			throw new IllegalArgumentException(e);
 		}
 	}
 	
 	public void findCheckImage(String checkNumber, OutputStream os) {
-		try ( FileInputStream fis = new FileInputStream(CHECK_IMAGE_LOCATION + "/" + checkNumber) ) {
-			byte[] b = new byte[1024];
-			int read;
-			while ( ( read = fis.read(b) ) != -1 ) {
-				os.write(b, 0, read);
+		File baseDir = new File(CHECK_IMAGE_LOCATION);
+		try {
+			File requestedFile = new File(baseDir, checkNumber);
+			
+			// Validate that the requested file is within the intended directory
+			String canonicalBasePath = baseDir.getCanonicalPath();
+			String canonicalRequestedPath = requestedFile.getCanonicalPath();
+			
+			if (!canonicalRequestedPath.startsWith(canonicalBasePath + File.separator) &&
+				!canonicalRequestedPath.equals(canonicalBasePath)) {
+				throw new IllegalArgumentException("Invalid check number");
 			}
-		} catch ( IOException e ) {
+			
+			try (FileInputStream fis = new FileInputStream(requestedFile)) {
+				byte[] b = new byte[1024];
+				int read;
+				while ((read = fis.read(b)) != -1) {
+					os.write(b, 0, read);
+				}
+			}
+		} catch (IOException e) {
 			throw new IllegalArgumentException(e);
 		}
 	}
