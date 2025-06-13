@@ -48,6 +48,7 @@ jobs:
           max_open_prs: 5
           base_branch: develop
           build_command: './gradlew clean build -x test'
+          formatting_command: 'echo no format necessary'
           max_qa_attempts: 6
           github_token: ${{ secrets.GITHUB_TOKEN }}
           contrast_host: ${{ vars.CONTRAST_HOST }}
