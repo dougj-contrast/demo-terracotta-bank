@@ -23,6 +23,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -54,11 +56,22 @@ public class CheckService extends ServiceSupport {
 	}
 
 	public void updateCheckImagesBulk(String checkNumber, InputStream is) {
+		// Validate the base check number
+		if (checkNumber == null || checkNumber.isEmpty()) {
+			throw new IllegalArgumentException("Invalid check number");
+		}
+		
 		try (ZipInputStream zis = new ZipInputStream(is)) {
 			ZipEntry ze;
 			while ( (ze = zis.getNextEntry()) != null ) {
 				try {
-					updateCheckImage(checkNumber + "/" + ze.getName(), zis);
+					String entryName = ze.getName();
+					// Validate the entry name to prevent path traversal
+					if (entryName != null && !entryName.contains("..") && !entryName.startsWith("/")) {
+						updateCheckImage(checkNumber + "/" + entryName, zis);
+					} else {
+						throw new IllegalArgumentException("Invalid entry name in zip file");
+					}
 				} catch ( Exception e ) {
 					e.printStackTrace(); // try to upload the other ones
 				}
@@ -69,9 +82,16 @@ public class CheckService extends ServiceSupport {
 	}
 
 	public void updateCheckImage(String checkNumber, InputStream is) {
+		// Validate the check number to prevent path traversal
+		if (!isValidCheckNumber(checkNumber)) {
+			throw new IllegalArgumentException("Invalid check number");
+		}
+		
 		try {
-			String location = new URI(CHECK_IMAGE_LOCATION + "/" + checkNumber).normalize().toString();
-			try ( FileOutputStream fos = new FileOutputStream(location) ) {
+			File file = new File(CHECK_IMAGE_LOCATION, checkNumber);
+			file.getParentFile().mkdirs(); // Create parent directories if needed
+			
+			try ( FileOutputStream fos = new FileOutputStream(file) ) {
 				byte[] b = new byte[1024];
 				int read;
 				while ( ( read = is.read(b) ) != -1 ) {
@@ -80,13 +100,39 @@ public class CheckService extends ServiceSupport {
 			} catch ( IOException e ) {
 				throw new IllegalArgumentException(e);
 			}
-		} catch ( URISyntaxException e ) {
+		} catch ( Exception e ) {
 			throw new IllegalArgumentException(e);
 		}
 	}
 	
+	/**
+	 * Validates that the check number doesn't contain path traversal sequences
+	 * and ensures the resulting path is within the intended directory.
+	 *
+	 * @param checkNumber The check number to validate
+	 * @return True if the check number is valid, false otherwise
+	 */
+	private boolean isValidCheckNumber(String checkNumber) {
+		if (checkNumber == null || checkNumber.isEmpty()) {
+			return false;
+		}
+		
+		// Normalize base path and combined path
+		File baseDir = new File(CHECK_IMAGE_LOCATION).getAbsoluteFile();
+		Path basePath = baseDir.toPath().normalize();
+		Path requestedPath = Paths.get(baseDir.getPath(), checkNumber).normalize();
+		
+		// Ensure the requested path is within the base directory
+		return requestedPath.startsWith(basePath);
+	}
+
 	public void findCheckImage(String checkNumber, OutputStream os) {
-		try ( FileInputStream fis = new FileInputStream(CHECK_IMAGE_LOCATION + "/" + checkNumber) ) {
+		// Validate the check number to prevent path traversal
+		if (!isValidCheckNumber(checkNumber)) {
+			throw new IllegalArgumentException("Invalid check number");
+		}
+		
+		try ( FileInputStream fis = new FileInputStream(new File(CHECK_IMAGE_LOCATION, checkNumber)) ) {
 			byte[] b = new byte[1024];
 			int read;
 			while ( ( read = fis.read(b) ) != -1 ) {
