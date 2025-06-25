@@ -23,6 +23,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -85,14 +88,51 @@ public class CheckService extends ServiceSupport {
 		}
 	}
 	
+	/**
+	 * Validates and sanitizes the check number to prevent path traversal attacks
+	 * 
+	 * @param checkNumber The check number to validate
+	 * @return true if the check number is safe, false otherwise
+	 */
+	private boolean isValidCheckNumber(String checkNumber) {
+		// Check for null or empty input
+		if (checkNumber == null || checkNumber.isEmpty()) {
+			return false;
+		}
+		
+		// Check if input contains any path traversal sequences
+		if (checkNumber.contains("..") || checkNumber.contains("/") || 
+		    checkNumber.contains("\\") || checkNumber.contains(":")) {
+			return false;
+		}
+		
+		// Additional validation could be added here, e.g., pattern matching
+		// if there's a specific format for check numbers
+		return true;
+	}
+	
 	public void findCheckImage(String checkNumber, OutputStream os) {
-		try ( FileInputStream fis = new FileInputStream(CHECK_IMAGE_LOCATION + "/" + checkNumber) ) {
+		// Validate the check number input
+		if (!isValidCheckNumber(checkNumber)) {
+			throw new IllegalArgumentException("Invalid check number format");
+		}
+		
+		// Create a safe path using nio Path APIs
+		Path basePath = Paths.get(CHECK_IMAGE_LOCATION).toAbsolutePath().normalize();
+		Path filePath = basePath.resolve(checkNumber).normalize();
+		
+		// Verify the resolved path is still within the base directory
+		if (!filePath.startsWith(basePath)) {
+			throw new IllegalArgumentException("Invalid check number path");
+		}
+		
+		try (InputStream is = Files.newInputStream(filePath)) {
 			byte[] b = new byte[1024];
 			int read;
-			while ( ( read = fis.read(b) ) != -1 ) {
+			while ((read = is.read(b)) != -1) {
 				os.write(b, 0, read);
 			}
-		} catch ( IOException e ) {
+		} catch (IOException e) {
 			throw new IllegalArgumentException(e);
 		}
 	}
