@@ -18,6 +18,7 @@ package com.joshcummings.codeplay.terracotta.service;
 import com.joshcummings.codeplay.terracotta.model.User;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLException;
 import java.util.Set;
 
 /**
@@ -43,7 +44,17 @@ public class UserService extends ServiceSupport {
 	}
 
 	public User findByUsernameAndPassword(String username, String password) {
-		Set<User> users = runQuery("SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'", (rs) ->
+		Set<User> users = runQuery("SELECT * FROM users WHERE username = ? AND password = ?", 
+			ps -> {
+				try {
+					ps.setString(1, username);
+					ps.setString(2, password);
+					return ps;
+				} catch (SQLException e) {
+					throw new IllegalArgumentException(e);
+				}
+			},
+			(rs) ->
 			new User(rs.getString(1), rs.getString(4), rs.getString(5),
 				rs.getString(2), rs.getString(3), rs.getBoolean(6)));
 		return users.isEmpty() ? null : users.iterator().next();
@@ -55,7 +66,7 @@ public class UserService extends ServiceSupport {
 
 	public void updateUser(User user) {
 		runUpdate("UPDATE users SET name = '" + user.getName() + "', email = '" + user.getEmail() + "' "+
-					"WHERE id = '" + user.getId() + "'");
+				"WHERE id = '" + user.getId() + "'");
 	}
 
 	public void updateUserPassword(User user) {
