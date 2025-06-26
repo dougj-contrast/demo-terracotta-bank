@@ -55,10 +55,12 @@ public class CheckService extends ServiceSupport {
 
 	public void updateCheckImagesBulk(String checkNumber, InputStream is) {
 		try (ZipInputStream zis = new ZipInputStream(is)) {
+			// Validate the check number first
+			String validatedCheckNumber = validateCheckNumber(checkNumber);
 			ZipEntry ze;
 			while ( (ze = zis.getNextEntry()) != null ) {
 				try {
-					updateCheckImage(checkNumber + "/" + ze.getName(), zis);
+					updateCheckImage(validatedCheckNumber + "/" + ze.getName(), zis);
 				} catch ( Exception e ) {
 					e.printStackTrace(); // try to upload the other ones
 				}
@@ -70,7 +72,8 @@ public class CheckService extends ServiceSupport {
 
 	public void updateCheckImage(String checkNumber, InputStream is) {
 		try {
-			String location = new URI(CHECK_IMAGE_LOCATION + "/" + checkNumber).normalize().toString();
+			String validatedCheckNumber = validateCheckNumber(checkNumber);
+			String location = new URI(CHECK_IMAGE_LOCATION + "/" + validatedCheckNumber).normalize().toString();
 			try ( FileOutputStream fos = new FileOutputStream(location) ) {
 				byte[] b = new byte[1024];
 				int read;
@@ -85,8 +88,26 @@ public class CheckService extends ServiceSupport {
 		}
 	}
 	
+		/**
+	 * Validates a check number to prevent path traversal attacks.
+	 * This method ensures the check number contains only safe characters.
+	 * 
+	 * @param checkNumber the check number to validate
+	 * @return the validated check number
+	 * @throws IllegalArgumentException if the check number contains invalid characters
+	 */
+	private String validateCheckNumber(String checkNumber) {
+		// Ensure checkNumber doesn't contain directory traversal characters
+		if (checkNumber == null || checkNumber.contains("..") || checkNumber.contains("/") || 
+		    checkNumber.contains("\\") || !checkNumber.matches("[a-zA-Z0-9_.-]+")) {
+			throw new IllegalArgumentException("Invalid check number format");
+		}
+		return checkNumber;
+	}
+
 	public void findCheckImage(String checkNumber, OutputStream os) {
-		try ( FileInputStream fis = new FileInputStream(CHECK_IMAGE_LOCATION + "/" + checkNumber) ) {
+		String validatedCheckNumber = validateCheckNumber(checkNumber);
+		try ( FileInputStream fis = new FileInputStream(CHECK_IMAGE_LOCATION + "/" + validatedCheckNumber) ) {
 			byte[] b = new byte[1024];
 			int read;
 			while ( ( read = fis.read(b) ) != -1 ) {
