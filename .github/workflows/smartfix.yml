@@ -12,8 +12,11 @@ permissions:
   contents: write
   pull-requests: write
 
-#env:
-  #AWS_REGION_NAME: ${{ vars.AWS_REGION }}
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+  AWS_REGION: ${{ vars.AWS_REGION }}
 
 jobs:
   generate_fixes:
@@ -34,6 +37,11 @@ jobs:
           fetch-depth: 0
 
       - name: Run Contrast AI SmartFix - Generate Fixes Action
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
         uses: Contrast-Security-OSS/contrast-ai-smartfix-action@AIML-313-simplify-smartfix-yml-job
         with:
           max_open_prs: 1
@@ -47,8 +55,8 @@ jobs:
           contrast_authorization_key: ${{ secrets.CONTRAST_AUTHORIZATION_KEY }}
           contrast_api_key: ${{ secrets.CONTRAST_API_KEY }}
           # --- Use Bedrock API key
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_bearer_token_bedrock: ${{ secrets.AWS_BEARER_TOKEN_BEDROCK }}
+          #aws_region: ${{ vars.AWS_REGION }}
+          #aws_bearer_token_bedrock: ${{ secrets.AWS_BEARER_TOKEN_BEDROCK }}
           # --- Use Contrast LLM as your default LLM provider
           use_contrast_llm: 'false'
           # --- Google Gemini API Credentials ---
