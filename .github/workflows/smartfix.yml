@@ -31,9 +31,9 @@ jobs:
           fetch-depth: 0
 
       - name: Run Contrast AI SmartFix - Generate Fixes Action
-        uses: Contrast-Security-OSS/contrast-ai-smartfix-action@TS-39794_shell_support2
+        uses: Contrast-Security-OSS/contrast-ai-smartfix-action@AIML-313-simplify-smartfix-yml-job
         with:
-          max_open_prs: 5
+          max_open_prs: 1
           base_branch: develop
           build_command: './gradlew clean build -x test'
           max_qa_attempts: 6
@@ -66,7 +66,7 @@ jobs:
           fetch-depth: 0
 
       - name: Notify Contrast on PR Merge
-        uses: Contrast-Security-OSS/contrast-ai-smartfix-action@TS-39794_shell_support2
+        uses: Contrast-Security-OSS/contrast-ai-smartfix-action@AIML-313-simplify-smartfix-yml-job
         with:
           run_task: merge
           # --- GitHub Token ---
@@ -91,7 +91,7 @@ jobs:
           fetch-depth: 0
 
       - name: Notify Contrast on PR Closed
-        uses: Contrast-Security-OSS/contrast-ai-smartfix-action@TS-39794_shell_support2
+        uses: Contrast-Security-OSS/contrast-ai-smartfix-action@AIML-313-simplify-smartfix-yml-job
         with:
           run_task: closed
           # --- GitHub Token ---
