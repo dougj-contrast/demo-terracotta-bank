@@ -12,8 +12,8 @@ permissions:
   contents: write
   pull-requests: write
 
-env:
-  AWS_REGION_NAME: ${{ vars.AWS_REGION }}
+#env:
+  #AWS_REGION_NAME: ${{ vars.AWS_REGION }}
 
 jobs:
   generate_fixes:
@@ -21,13 +21,13 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
     steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ vars.AWS_REGION }}
+      #- name: Configure AWS credentials
+        #uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        #with:
+          #aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          #aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          #aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          #aws-region: ${{ vars.AWS_REGION }}
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -46,6 +46,9 @@ jobs:
           contrast_app_id: ${{ vars.CONTRAST_APP_ID }}
           contrast_authorization_key: ${{ secrets.CONTRAST_AUTHORIZATION_KEY }}
           contrast_api_key: ${{ secrets.CONTRAST_API_KEY }}
+          # --- Use Bedrock API key
+          aws_region: ${{ vars.AWS_REGION }}
+          aws_bearer_token_bedrock: ${{ secrets.AWS_BEARER_TOKEN_BEDROCK }}
           # --- Use Contrast LLM as your default LLM provider
           use_contrast_llm: 'false'
           # --- Google Gemini API Credentials ---
