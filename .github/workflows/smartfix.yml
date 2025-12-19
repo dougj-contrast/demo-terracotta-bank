@@ -33,7 +33,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Contrast AI SmartFix - Generate Fixes Action
-        uses: Contrast-Security-OSS/contrast-ai-smartfix-action@AIML-321_refine_bedrock_config_validation
+        uses: Contrast-Security-OSS/contrast-ai-smartfix-action@AIML-313-simplify-smartfix-yml-job
         with:
           max_open_prs: 1
           base_branch: develop
@@ -73,7 +73,7 @@ jobs:
           fetch-depth: 0
 
       - name: Notify Contrast on PR Merge
-        uses: Contrast-Security-OSS/contrast-ai-smartfix-action@AIML-321_refine_bedrock_config_validation
+        uses: Contrast-Security-OSS/contrast-ai-smartfix-action@AIML-313-simplify-smartfix-yml-job
         with:
           run_task: merge
           # --- GitHub Token ---
@@ -98,11 +98,9 @@ jobs:
           fetch-depth: 0
 
       - name: Notify Contrast on PR Closed
-        uses: Contrast-Security-OSS/contrast-ai-smartfix-action@AIML-321_refine_bedrock_config_validation
+        uses: Contrast-Security-OSS/contrast-ai-smartfix-action@AIML-313-simplify-smartfix-yml-job
         with:
-          #AIML-313-simplify-smartfix-yml-job
           run_task: closed
-          aws_region: ${{ vars.AWS_REGION }}
           # --- GitHub Token ---
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # --- Contrast API Credentials ---
