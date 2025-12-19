@@ -72,7 +72,7 @@ jobs:
           fetch-depth: 0
 
       - name: Notify Contrast on PR Merge
-        uses: Contrast-Security-OSS/contrast-ai-smartfix-action@AIML-313-simplify-smartfix-yml-job
+        uses: Contrast-Security-OSS/contrast-ai-smartfix-action@AIML-321_refine_bedrock_config_validation
         with:
           run_task: merge
           # --- GitHub Token ---
@@ -97,8 +97,9 @@ jobs:
           fetch-depth: 0
 
       - name: Notify Contrast on PR Closed
-        uses: Contrast-Security-OSS/contrast-ai-smartfix-action@AIML-313-simplify-smartfix-yml-job
+        uses: Contrast-Security-OSS/contrast-ai-smartfix-action@AIML-321_refine_bedrock_config_validation
         with:
+          #AIML-313-simplify-smartfix-yml-job
           run_task: closed
           aws_region: ${{ vars.AWS_REGION }}
           # --- GitHub Token ---
